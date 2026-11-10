@@ -1,0 +1,5 @@
+-r requirements.txt
+faker>=25
+pandas>=2.1
+matplotlib>=3.8
+pytest>=8

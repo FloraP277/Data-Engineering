@@ -1,0 +1,36 @@
+# Postgres (warehouse + Airflow metadata) and Airflow in standalone mode.
+#   docker compose up -d
+#   Airflow UI: http://localhost:8080 (the admin password is printed in `docker compose logs airflow`)
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: warehouse
+    ports: ["5432:5432"]
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 5s
+      retries: 10
+
+  airflow:
+    image: apache/airflow:2.10.5-python3.11
+    depends_on:
+      postgres: {condition: service_healthy}
+    command: standalone
+    ports: ["8080:8080"]
+    environment:
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://postgres:postgres@postgres:5432/postgres
+      _PIP_ADDITIONAL_REQUIREMENTS: "dbt-core>=1.10 dbt-postgres>=1.9 psycopg[binary]>=3.1"
+      WAREHOUSE_HOST: postgres
+      WAREHOUSE_PORT: "5432"
+      WAREHOUSE_DB: warehouse
+      HQW_SRC: /opt/airflow/project/src
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./:/opt/airflow/project
+
+volumes:
+  pgdata:

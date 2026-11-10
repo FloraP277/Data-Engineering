@@ -1,0 +1,7 @@
+version: 2
+sources:
+  - name: raw
+    schema: raw
+    tables:
+      - name: hospital_general_information
+        description: CMS Hospital General Information, one row per hospital per release (snapshot_date).

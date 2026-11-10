@@ -1,0 +1,21 @@
+name: hospital_quality
+version: "1.0.0"
+config-version: 2
+profile: hospital_quality
+
+model-paths: ["models"]
+snapshot-paths: ["snapshots"]
+test-paths: ["tests"]
+
+vars:
+  # Set by the loader/DAG so each CMS release is snapshotted in order.
+  snapshot_date: null
+
+models:
+  hospital_quality:
+    staging:
+      +materialized: view
+      +schema: staging
+    marts:
+      +materialized: table
+      +schema: marts

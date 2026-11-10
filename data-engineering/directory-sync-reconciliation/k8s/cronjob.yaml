@@ -1,0 +1,32 @@
+# Runs the sync and reconciliation every night at 01:30 UTC.
+#   docker build -t dirsync:latest .
+#   kind load docker-image dirsync:latest      # or: minikube image load dirsync:latest
+#   kubectl apply -f k8s/secret.yaml -f k8s/cronjob.yaml
+#   kubectl create job --from=cronjob/dirsync-nightly dirsync-manual   # run it now
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: dirsync-nightly
+spec:
+  schedule: "30 1 * * *"
+  timeZone: "Etc/UTC"
+  concurrencyPolicy: Forbid          # never let two runs overlap
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 5
+  jobTemplate:
+    spec:
+      backoffLimit: 2                # retry twice, then the run shows as failed
+      activeDeadlineSeconds: 1800
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: dirsync
+              image: dirsync:latest
+              imagePullPolicy: IfNotPresent
+              envFrom:
+                - secretRef:
+                    name: dirsync-db
+              resources:
+                requests: {cpu: 100m, memory: 128Mi}
+                limits: {cpu: 500m, memory: 256Mi}

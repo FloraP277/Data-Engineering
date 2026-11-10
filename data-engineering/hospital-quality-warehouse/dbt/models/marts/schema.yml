@@ -1,0 +1,42 @@
+version: 2
+models:
+  - name: dim_hospital
+    description: SCD Type 2 hospital dimension built from the dbt snapshot.
+    columns:
+      - name: hospital_key
+        tests: [unique, not_null]
+      - name: facility_id
+        tests: [not_null]
+      - name: overall_rating
+        tests:
+          - accepted_values:
+              arguments:
+                values: [1, 2, 3, 4, 5]
+                quote: false
+  - name: dim_location
+    columns:
+      - name: location_key
+        tests: [unique, not_null]
+  - name: dim_date
+    columns:
+      - name: date_key
+        tests: [unique, not_null]
+  - name: fct_hospital_ratings
+    description: One row per hospital per CMS release.
+    columns:
+      - name: hospital_key
+        tests:
+          - not_null
+          - relationships: {arguments: {to: ref('dim_hospital'), field: hospital_key}}
+      - name: location_key
+        tests:
+          - relationships: {arguments: {to: ref('dim_location'), field: location_key}}
+      - name: date_key
+        tests:
+          - relationships: {arguments: {to: ref('dim_date'), field: date_key}}
+      - name: overall_rating
+        tests:
+          - accepted_values:
+              arguments:
+                values: [1, 2, 3, 4, 5]
+                quote: false

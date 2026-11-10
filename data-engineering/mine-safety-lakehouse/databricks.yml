@@ -1,0 +1,32 @@
+# Databricks Asset Bundle: deploys the weekly job.
+#
+#   databricks bundle validate
+#   databricks bundle deploy
+#   databricks bundle run mine_safety_weekly
+#
+# Set your workspace URL below (or with DATABRICKS_HOST) before deploying.
+bundle:
+  name: mine-safety-lakehouse
+
+targets:
+  dev:
+    mode: development
+    default: true
+    workspace:
+      host: https://<your-workspace>.cloud.databricks.com
+
+resources:
+  jobs:
+    mine_safety_weekly:
+      name: mine-safety-weekly
+      schedule:
+        # MSHA updates its files on Friday afternoons; run Saturday morning.
+        quartz_cron_expression: "0 0 6 ? * SAT"
+        timezone_id: America/New_York
+      tasks:
+        - task_key: run_pipeline
+          notebook_task:
+            notebook_path: ./notebooks/run_pipeline.py
+            base_parameters:
+              catalog: workspace
+              schema: mine_safety

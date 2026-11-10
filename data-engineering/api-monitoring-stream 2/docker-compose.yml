@@ -1,0 +1,25 @@
+# Kafka-compatible broker (Redpanda), Postgres for the results, Grafana for the dashboard.
+#   docker compose up -d
+#   Grafana: http://localhost:3000 (admin / admin)
+services:
+  redpanda:
+    image: redpandadata/redpanda:v24.2.7
+    command: >-
+      redpanda start --smp 1 --memory 1G --overprovisioned --node-id 0
+      --kafka-addr PLAINTEXT://0.0.0.0:9092 --advertise-kafka-addr PLAINTEXT://localhost:9092
+    ports: ["9092:9092"]
+
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: monitoring
+    ports: ["5432:5432"]
+
+  grafana:
+    image: grafana/grafana:11.2.0
+    depends_on: [postgres]
+    ports: ["3000:3000"]
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
