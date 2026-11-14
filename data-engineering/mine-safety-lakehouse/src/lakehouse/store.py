@@ -50,7 +50,9 @@ class DeltaStore:
 
     def __init__(self, spark: SparkSession, catalog: str, schema: str):
         self.spark = spark
-        self.prefix = f"{catalog}.{schema}"
+        # Open-source Spark's default catalog (spark_catalog) only takes two-part names
+        # in DeltaTable.forName; Unity Catalog on Databricks uses catalog.schema.table.
+        self.prefix = schema if catalog == "spark_catalog" else f"{catalog}.{schema}"
         spark.sql(f"CREATE SCHEMA IF NOT EXISTS {self.prefix}")
 
     def name(self, table: str) -> str:
